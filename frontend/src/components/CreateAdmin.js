@@ -1,32 +1,35 @@
 // src/components/CreateAdmin.js
-import { useState } from 'react';
+import { useState } from "react";
+import { apiFetch } from "../api";
 
 export default function CreateAdmin() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [msg, setMsg] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [msg, setMsg] = useState("");
 
   async function handleSubmit(e) {
     e.preventDefault();
-    const res = await fetch('http://localhost:4000/api/users/create-admin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email })
-    });
-    const data = await res.json();
-    if (res.ok) setMsg(`✅ Admin created: ${data.name} (${data.email})`);
-    else setMsg(`❌ Error: ${data.error}`);
+    setMsg("");
+    try {
+      const data = await apiFetch("/api/users/create-admin", {
+        method: "POST",
+        body: JSON.stringify({ name, email }),
+      });
+      setMsg(`✅ Admin created: ${data.name} (${data.email})`);
+    } catch (err) {
+      setMsg(`❌ ${err.message}`);
+    }
   }
 
   return (
-    <div>
-      <h2>Create Admin</h2>
-      <form onSubmit={handleSubmit}>
+    <div style={{ maxWidth: 560 }}>
+      <h2>Create Admin (Power User)</h2>
+      <form onSubmit={handleSubmit} style={{ display: "grid", gap: 10 }}>
         <input placeholder="Full name" value={name} onChange={e=>setName(e.target.value)} />
-        <input placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} />
+        <input type="email" placeholder="admin@example.com" value={email} onChange={e=>setEmail(e.target.value)} />
         <button type="submit">Create</button>
       </form>
-      <p>{msg}</p>
+      {msg && <p style={{ color: msg.startsWith("✅") ? "green" : "crimson" }}>{msg}</p>}
     </div>
   );
 }
