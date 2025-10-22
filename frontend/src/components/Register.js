@@ -1,40 +1,70 @@
-// src/components/Register.js
-import { useState } from 'react';
+// src/App.js
+import { useEffect, useState } from "react";
+import Login from "./components/Login";
+import EvaluationChat from "./components/EvaluationChat";
+import InviteUser from "./components/InviteUser";
+import Register from "./components/Register";
 
-export default function Register() {
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get('token');
-  const [name, setName] = useState('');
-  const [dob, setDob] = useState('');
-  const [year, setYear] = useState('');
-  const [department, setDepartment] = useState('');
-  const [password, setPassword] = useState('');
-  const [msg, setMsg] = useState('');
+function App() {
+  const [role, setRole] = useState(localStorage.getItem("role"));
+  const [view, setView] = useState("home");
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    const res = await fetch(`http://localhost:4000/api/register?token=${token}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, dob, year_in_med_school: year, department, password })
-    });
-    const data = await res.json();
-    if (res.ok) setMsg('✅ Registration successful, you can now log in.');
-    else setMsg(`❌ Error: ${data.error}`);
+  // naive routing: show Register when path is /register
+  const isRegisterPage = window.location.pathname === "/register";
+
+  useEffect(() => {
+    setView("home");
+  }, [role]);
+
+  function handleLogin(dataOrRole) {
+    const newRole = typeof dataOrRole === "string" ? dataOrRole : dataOrRole?.role;
+    localStorage.setItem("role", newRole);
+    setRole(newRole);
   }
 
+  function logout() {
+    localStorage.clear();
+    setRole(null);
+    setView("home");
+  }
+
+  // Public registration page (from invite link ?token=...)
+  if (isRegisterPage) {
+    return <Register />;
+  }
+
+  // Not logged in -> show login
+  if (!role) {
+    return (
+      <div style={{ padding: "2rem" }}>
+        <Login onLogin={handleLogin} />
+      </div>
+    );
+  }
+
+  // Logged in -> role-based simple nav
   return (
-    <div>
-      <h2>Complete Registration</h2>
-      <form onSubmit={handleSubmit}>
-        <input placeholder="Full Name" value={name} onChange={e=>setName(e.target.value)} />
-        <input type="date" value={dob} onChange={e=>setDob(e.target.value)} />
-        <input placeholder="Year in Med School" value={year} onChange={e=>setYear(e.target.value)} />
-        <input placeholder="Department" value={department} onChange={e=>setDepartment(e.target.value)} />
-        <input type="password" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)} />
-        <button type="submit">Register</button>
-      </form>
-      <p>{msg}</p>
+    <div style={{ padding: "1.5rem", maxWidth: 900, margin: "0 auto" }}>
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div><strong>Logged in as:</strong> {role}</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {(role === "evaluator" || role === "admin") && (
+            <button onClick={() => setView("evaluate")}>Evaluate</button>
+          )}
+          {role === "admin" && (
+            <button onClick={() => setView("invite")}>Invite Users</button>
+          )}
+          <button onClick={logout}>Logout</button>
+        </div>
+      </header>
+
+      <main style={{ marginTop: 16 }}>
+        {view === "home" && <p>Select an action above.</p>}
+        {view === "evaluate" && <EvaluationChat />}
+        {view === "invite" && role === "admin" && <InviteUser />}
+      </main>
     </div>
   );
 }
+
+export default App;
