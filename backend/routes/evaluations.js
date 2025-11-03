@@ -35,7 +35,7 @@ router.post('/chat', requireAuth, requireRole('evaluator','admin'), async (req, 
     );
 
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-20250929',
       max_tokens: 600,
       temperature: 0.3,
       system: SYSTEM_PROMPT,
