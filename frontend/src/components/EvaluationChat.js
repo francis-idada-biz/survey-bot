@@ -1,31 +1,44 @@
 // src/components/EvaluationChat.js
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { apiFetch } from "../api";
 
 export default function EvaluationChat() {
   const [evaluationId, setEvaluationId] = useState(null);
-  const [evaluatorId, setEvaluatorId] = useState("");
-  const [studentId, setStudentId] = useState("");
+  const [students, setStudents] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState("");
   const [message, setMessage] = useState("");
   const [displayHistory, setDisplayHistory] = useState([]); // [{sender, text}]
-  const [llmHistory, setLlmHistory] = useState([]);         // [{role:'user'|'assistant', content:'...'}]
+  const [llmHistory, setLlmHistory] = useState([]);         // [{role, content}]
   const [summary, setSummary] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  // Load all students once
+  useEffect(() => {
+    (async () => {
+      try {
+        const list = await apiFetch("/api/users/students", { method: "GET" });
+        setStudents(list);
+      } catch (err) {
+        setError(err.message);
+      }
+    })();
+  }, []);
 
   async function startEvaluation() {
     setError("");
     setSummary("");
     setDisplayHistory([]);
     setLlmHistory([]);
-    if (!evaluatorId || !studentId) {
-      setError("Evaluator ID and Student ID are required.");
+
+    if (!selectedStudent) {
+      setError("Please select a student.");
       return;
     }
     try {
       const data = await apiFetch("/api/evaluations/start", {
         method: "POST",
-        body: JSON.stringify({ evaluator_id: Number(evaluatorId), student_id: Number(studentId) }),
+        body: JSON.stringify({ student_id: Number(selectedStudent) }),
       });
       setEvaluationId(data.evaluation_id);
     } catch (err) {
@@ -39,7 +52,7 @@ export default function EvaluationChat() {
     setError("");
     setBusy(true);
 
-    // Optimistic UI update
+    // Optimistic update
     setDisplayHistory(prev => [...prev, { sender: "user", text: message }]);
     const newLlmHistory = [...llmHistory, { role: "user", content: message }];
 
@@ -49,7 +62,7 @@ export default function EvaluationChat() {
         body: JSON.stringify({
           evaluation_id: evaluationId,
           message,
-          history: newLlmHistory, // 👈 backend expects Anthropic-style messages
+          history: newLlmHistory,
         }),
       });
 
@@ -86,16 +99,18 @@ export default function EvaluationChat() {
 
       {!evaluationId && (
         <div style={{ display: "grid", gap: 8, maxWidth: 420 }}>
-          <input
-            placeholder="Evaluator ID (users.user_id)"
-            value={evaluatorId}
-            onChange={e=>setEvaluatorId(e.target.value)}
-          />
-          <input
-            placeholder="Student ID (users.user_id)"
-            value={studentId}
-            onChange={e=>setStudentId(e.target.value)}
-          />
+          <label>Select a student to evaluate</label>
+          <select
+            value={selectedStudent}
+            onChange={(e) => setSelectedStudent(e.target.value)}
+          >
+            <option value="">-- choose student --</option>
+            {students.map(s => (
+              <option key={s.user_id} value={s.user_id}>
+                {s.name} {s.year_in_med_school ? `(Year ${s.year_in_med_school})` : ""} — {s.email}
+              </option>
+            ))}
+          </select>
           <button onClick={startEvaluation}>Start Evaluation</button>
           {error && <p style={{ color: "crimson" }}>{error}</p>}
         </div>

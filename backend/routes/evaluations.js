@@ -13,11 +13,13 @@ You are a formal, empathetic evaluation bot for medical students.
 `;
 
 router.post('/start', requireAuth, requireRole('evaluator','admin'), async (req, res) => {
-  const { evaluator_id, student_id } = req.body;
+  const { student_id } = req.body;
   try {
+    const evaluator_id = req.user.user_id; // ← from token
     const ins = await pool.query(
       `INSERT INTO evaluations (evaluator_id, student_id, started_at)
-       VALUES ($1,$2,now()) RETURNING evaluation_id, evaluator_id, student_id, started_at`,
+       VALUES ($1,$2,now())
+       RETURNING evaluation_id, evaluator_id, student_id, started_at`,
       [evaluator_id, student_id]
     );
     res.json(ins.rows[0]);

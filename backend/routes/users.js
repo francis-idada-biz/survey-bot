@@ -38,4 +38,20 @@ router.post('/invite', requireAuth, requireRole('admin'), async (req, res) => {
   }
 });
 
+// routes/users.js (add at bottom)
+router.get('/students', requireAuth, requireRole('evaluator','admin'), async (_req, res) => {
+  try {
+    const q = await pool.query(
+      `SELECT user_id, name, email, year_in_med_school
+         FROM users
+        WHERE role = 'student'
+        ORDER BY name ASC`
+    );
+    res.json(q.rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+
 module.exports = router;

@@ -119,8 +119,15 @@ export default function Register() {
           autoComplete="new-password"
         />
 
-        <button type="submit" disabled={busy || !token}>
-          {busy ? "Submitting…" : "Create Account"}
+        <button
+          type="submit"
+          disabled={busy || !token || msg.startsWith("✅")}  // <-- added msg check
+          style={{
+            opacity: busy || msg.startsWith("✅") ? 0.6 : 1,
+            cursor: busy || msg.startsWith("✅") ? "not-allowed" : "pointer",
+          }}
+        >
+          {busy ? "Submitting…" : msg.startsWith("✅") ? "Account Created" : "Create Account"}
         </button>
       </form>
     </div>
