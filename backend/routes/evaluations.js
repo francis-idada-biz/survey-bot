@@ -12,21 +12,65 @@ You are a formal, empathetic evaluation bot for medical students.
 [... your full domains + rubrics + instructions exactly as you want ...]
 `;
 
-router.post('/start', requireAuth, requireRole('evaluator','admin'), async (req, res) => {
-  const { student_id } = req.body;
-  try {
-    const evaluator_id = req.user.user_id; // ← from token
-    const ins = await pool.query(
-      `INSERT INTO evaluations (evaluator_id, student_id, started_at)
-       VALUES ($1,$2,now())
-       RETURNING evaluation_id, evaluator_id, student_id, started_at`,
-      [evaluator_id, student_id]
-    );
-    res.json(ins.rows[0]);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+// routes/evaluations.js
+router.post(
+  "/start",
+  requireAuth,
+  requireRole("evaluator", "admin"),
+  async (req, res) => {
+    try {
+      const evaluator_id = req.user.user_id;      // from JWT
+      const sid = parseInt(req.body.student_id, 10);
+
+      console.log(">>> /api/evaluations/start body:", req.body);
+      console.log(">>> evaluator_id from JWT:", evaluator_id);
+      console.log(">>> parsed student_id (sid):", sid);
+
+      if (!Number.isInteger(sid)) {
+        return res.status(400).json({ error: "Invalid student_id" });
+      }
+
+      // Check that student exists and is a student
+      const stu = await pool.query(
+        "SELECT user_id, role, email, name FROM users WHERE user_id = $1",
+        [sid]
+      );
+      console.log(">>> student lookup result:", stu.rows);
+
+      if (stu.rowCount === 0) {
+        return res.status(400).json({ error: "Student not found" });
+      }
+      if (stu.rows[0].role !== "student") {
+        return res
+          .status(400)
+          .json({ error: "Selected user is not a student" });
+      }
+
+      // Optional: check evaluator too
+      const evalr = await pool.query(
+        "SELECT user_id, role, email, name FROM users WHERE user_id = $1",
+        [evaluator_id]
+      );
+      console.log(">>> evaluator lookup result:", evalr.rows);
+
+      const ins = await pool.query(
+        `INSERT INTO evaluations (evaluator_id, student_id, started_at)
+         VALUES ($1,$2,now())
+         RETURNING evaluation_id, evaluator_id, student_id, started_at`,
+        [evaluator_id, sid]
+      );
+
+      console.log(">>> inserted evaluation:", ins.rows[0]);
+
+      res.json(ins.rows[0]);
+    } catch (e) {
+      console.error("!!! /api/evaluations/start ERROR:", e);
+      res.status(500).json({ error: e.message });
+    }
   }
-});
+);
+
+
 
 router.post('/chat', requireAuth, requireRole('evaluator','admin'), async (req, res) => {
   const { evaluation_id, message, history } = req.body;

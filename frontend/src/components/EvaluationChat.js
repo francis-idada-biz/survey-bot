@@ -30,11 +30,14 @@ export default function EvaluationChat() {
     setSummary("");
     setDisplayHistory([]);
     setLlmHistory([]);
-
+  
     if (!selectedStudent) {
       setError("Please select a student.");
       return;
     }
+  
+    console.log(">>> starting evaluation with student_id:", selectedStudent);
+  
     try {
       const data = await apiFetch("/api/evaluations/start", {
         method: "POST",
@@ -45,6 +48,7 @@ export default function EvaluationChat() {
       setError(err.message);
     }
   }
+  
 
   async function sendMessage() {
     if (!evaluationId) return setError("Start an evaluation first.");
