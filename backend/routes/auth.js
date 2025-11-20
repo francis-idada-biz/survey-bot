@@ -56,8 +56,37 @@ router.post('/register', async (req, res) => {
 });
 
 // verify current session/token
-router.get('/me', requireAuth, async (req, res) => {
-  res.json({ user_id: req.user.user_id, role: req.user.role, email: req.user.email, name: req.user.name });
+router.get("/me", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id; // this is fine, token carries "id"
+    
+    const result = await pool.query(
+      `SELECT 
+        user_id AS id,
+        name,
+        email,
+        role,
+        department,
+        dob,
+        year_in_med_school,
+        picture_url,
+        created_at,
+        updated_at
+       FROM users
+       WHERE user_id = $1`,
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    return res.json({ user: result.rows[0] });
+
+  } catch (err) {
+    console.error("Auth me error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 module.exports = router;

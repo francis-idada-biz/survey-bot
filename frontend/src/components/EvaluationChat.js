@@ -1,168 +1,258 @@
 // src/components/EvaluationChat.js
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { apiFetch } from "../api";
 
-export default function EvaluationChat() {
-  const [evaluationId, setEvaluationId] = useState(null);
-  const [students, setStudents] = useState([]);
-  const [selectedStudent, setSelectedStudent] = useState("");
-  const [message, setMessage] = useState("");
-  const [displayHistory, setDisplayHistory] = useState([]); // [{sender, text}]
-  const [llmHistory, setLlmHistory] = useState([]);         // [{role, content}]
-  const [summary, setSummary] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+export default function EvaluationChat({ evaluation_id, studentName }) {
+  const [messages, setMessages] = useState([]);   // {sender: "user"/"assistant", text}
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [summary, setSummary] = useState(null);
 
-  // Load all students once
+  const bottomRef = useRef(null);
+
+  // --------------------------
+  // SCROLL TO BOTTOM ON UPDATE
+  // --------------------------
   useEffect(() => {
-    (async () => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, summary]);
+
+  // --------------------------
+  // INIT: SEND __system_init
+  // --------------------------
+  useEffect(() => {
+    async function init() {
+      setLoading(true);
       try {
-        const list = await apiFetch("/api/users/students", { method: "GET" });
-        setStudents(list);
-      } catch (err) {
-        setError(err.message);
+        const r = await apiFetch("/api/evaluations/chat", {
+          method: "POST",
+          body: JSON.stringify({
+            evaluation_id,
+            message: "__system_init",
+            history: []
+          }),
+        });
+
+        setMessages((m) => [...m, { sender: "assistant", text: r.response }]);
+      } catch (e) {
+        console.error(e);
+        setMessages((m) => [
+          ...m,
+          { sender: "assistant", text: "Error initializing evaluation." },
+        ]);
       }
-    })();
-  }, []);
-
-  async function startEvaluation() {
-    setError("");
-    setSummary("");
-    setDisplayHistory([]);
-    setLlmHistory([]);
-  
-    if (!selectedStudent) {
-      setError("Please select a student.");
-      return;
+      setLoading(false);
     }
-  
-    console.log(">>> starting evaluation with student_id:", selectedStudent);
-  
-    try {
-      const data = await apiFetch("/api/evaluations/start", {
-        method: "POST",
-        body: JSON.stringify({ student_id: Number(selectedStudent) }),
-      });
-      setEvaluationId(data.evaluation_id);
-    } catch (err) {
-      setError(err.message);
-    }
-  }
-  
 
+    if (evaluation_id) init();
+  }, [evaluation_id]);
+
+  // --------------------------
+  // SEND MESSAGE
+  // --------------------------
   async function sendMessage() {
-    if (!evaluationId) return setError("Start an evaluation first.");
-    if (!message.trim()) return;
-    setError("");
-    setBusy(true);
+    if (!input.trim() || loading) return;
 
-    // Optimistic update
-    setDisplayHistory(prev => [...prev, { sender: "user", text: message }]);
-    const newLlmHistory = [...llmHistory, { role: "user", content: message }];
+    const userMsg = input.trim();
+    setInput("");
+
+    // Add message locally
+    setMessages((m) => [...m, { sender: "user", text: userMsg }]);
+    setLoading(true);
 
     try {
-      const data = await apiFetch("/api/evaluations/chat", {
+      const historyForAPI = messages.map((m) => ({
+        role: m.sender === "user" ? "user" : "assistant",
+        content: m.text,
+      }));
+
+      const r = await apiFetch("/api/evaluations/chat", {
         method: "POST",
         body: JSON.stringify({
-          evaluation_id: evaluationId,
-          message,
-          history: newLlmHistory,
+          evaluation_id,
+          message: userMsg,
+          history: historyForAPI,
         }),
       });
 
-      setDisplayHistory(prev => [...prev, { sender: "assistant", text: data.response }]);
-      setLlmHistory([...newLlmHistory, { role: "assistant", content: data.response }]);
-      setMessage("");
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
+      setMessages((m) => [...m, { sender: "assistant", text: r.response }]);
+    } catch (e) {
+      console.error(e);
+      setMessages((m) => [
+        ...m,
+        { sender: "assistant", text: "Error sending message." },
+      ]);
     }
+
+    setLoading(false);
   }
 
-  async function getSummary() {
-    if (!evaluationId) return;
-    setError("");
-    setBusy(true);
+  // --------------------------
+  // GENERATE SUMMARY
+  // --------------------------
+  async function generateSummary() {
+    if (loading) return;
+
+    setLoading(true);
     try {
-      const data = await apiFetch("/api/evaluations/summary", {
+      const r = await apiFetch("/api/evaluations/summary", {
         method: "POST",
-        body: JSON.stringify({ evaluation_id: evaluationId }),
+        body: JSON.stringify({ evaluation_id }),
       });
-      setSummary(data.summary);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
+      setSummary(r.summary);
+    } catch (e) {
+      console.error(e);
+      setSummary("Error generating summary.");
     }
+    setLoading(false);
   }
 
+  // --------------------------
+  // RENDER
+  // --------------------------
   return (
-    <div style={{ maxWidth: 800 }}>
-      <h2>Evaluation Chat</h2>
+    <div style={styles.container}>
+      <h2 style={styles.header}>Evaluating {studentName}</h2>
 
-      {!evaluationId && (
-        <div style={{ display: "grid", gap: 8, maxWidth: 420 }}>
-          <label>Select a student to evaluate</label>
-          <select
-            value={selectedStudent}
-            onChange={(e) => setSelectedStudent(e.target.value)}
+      {/* CHAT WINDOW */}
+      <div style={styles.chatWindow}>
+        {messages.map((m, i) => (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              justifyContent: m.sender === "user" ? "flex-end" : "flex-start",
+              marginBottom: "12px",
+            }}
           >
-            <option value="">-- choose student --</option>
-            {students.map(s => (
-              <option key={s.user_id} value={s.user_id}>
-                {s.name} {s.year_in_med_school ? `(Year ${s.year_in_med_school})` : ""} — {s.email}
-              </option>
-            ))}
-          </select>
-          <button onClick={startEvaluation}>Start Evaluation</button>
-          {error && <p style={{ color: "crimson" }}>{error}</p>}
-        </div>
+            <div
+              style={{
+                ...styles.bubble,
+                ...(m.sender === "user" ? styles.userBubble : styles.assistantBubble),
+              }}
+            >
+              <div style={{ whiteSpace: "pre-wrap", textAlign: "left" }}>
+                {m.text}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* Loading indicator */}
+        {loading && (
+          <div style={{ fontStyle: "italic", color: "#666" }}>
+            Claude is thinking...
+          </div>
+        )}
+
+        <div ref={bottomRef} />
+      </div>
+
+      {/* INPUT AREA */}
+      <div style={styles.inputRow}>
+        <textarea
+          style={styles.input}
+          placeholder="Type your message…"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          rows={2}
+        />
+        <button style={styles.sendBtn} onClick={sendMessage} disabled={loading}>
+          Send
+        </button>
+      </div>
+
+      {/* SUMMARY BUTTON */}
+      {!summary && (
+        <button style={styles.summaryBtn} onClick={generateSummary} disabled={loading}>
+          Generate Summary
+        </button>
       )}
 
-      {evaluationId && (
-        <>
-          <div style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12, height: 320, overflowY: "auto", marginTop: 16 }}>
-            {displayHistory.map((m, i) => (
-              <div key={i} style={{ textAlign: m.sender === "user" ? "right" : "left", margin: "6px 0" }}>
-                <div style={{
-                  display: "inline-block",
-                  background: m.sender === "user" ? "#6b6be6" : "#f0f2f5",
-                  color: m.sender === "user" ? "white" : "black",
-                  padding: "8px 12px",
-                  borderRadius: 12,
-                  maxWidth: "75%"
-                }}>
-                  <strong>{m.sender === "user" ? "You" : "Assistant"}:</strong> {m.text}
-                </div>
-              </div>
-            ))}
-            {busy && <p style={{ fontStyle: "italic", color: "#666" }}>Claude is thinking…</p>}
+      {/* SUMMARY DISPLAY */}
+      {summary && (
+        <div style={styles.summaryBox}>
+          <h3>Final Summary</h3>
+          <div style={{ whiteSpace: "pre-wrap", marginTop: "10px" }}>
+            {summary}
           </div>
-
-          <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
-            <input
-              style={{ flex: 1 }}
-              placeholder="Type your message…"
-              value={message}
-              onChange={e=>setMessage(e.target.value)}
-              onKeyDown={e => (e.key === "Enter" ? sendMessage() : null)}
-              disabled={busy}
-            />
-            <button onClick={sendMessage} disabled={busy}>Send</button>
-            <button onClick={getSummary} disabled={busy}>Generate Summary</button>
-          </div>
-
-          {error && <p style={{ color: "crimson" }}>{error}</p>}
-
-          {summary && (
-            <div style={{ background: "#f7f7fb", border: "1px solid #e5e5f0", borderRadius: 8, padding: 12, marginTop: 16 }}>
-              <h3>Summary</h3>
-              <pre style={{ whiteSpace: "pre-wrap" }}>{summary}</pre>
-            </div>
-          )}
-        </>
+        </div>
       )}
     </div>
   );
 }
+
+
+// ---------------------------------------
+// STYLES
+// ---------------------------------------
+const styles = {
+  container: {
+    maxWidth: "800px",
+    margin: "0 auto",
+    padding: "20px",
+  },
+  header: {
+    textAlign: "center",
+    marginBottom: "15px",
+  },
+  chatWindow: {
+    height: "60vh",
+    overflowY: "auto",
+    border: "1px solid #ddd",
+    padding: "15px",
+    borderRadius: "8px",
+    background: "#fafafa",
+  },
+  bubble: {
+    maxWidth: "70%",
+    padding: "12px",
+    borderRadius: "12px",
+    lineHeight: 1.4,
+  },
+  userBubble: {
+    background: "#cce5ff",
+    border: "1px solid #99caff",
+  },
+  assistantBubble: {
+    background: "#fff",
+    border: "1px solid #ddd",
+  },
+  inputRow: {
+    display: "flex",
+    marginTop: "15px",
+    gap: "10px",
+  },
+  input: {
+    flex: 1,
+    padding: "10px",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    fontSize: "14px",
+  },
+  sendBtn: {
+    padding: "10px 16px",
+    background: "#0069d9",
+    color: "white",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+  },
+  summaryBtn: {
+    marginTop: "15px",
+    padding: "10px 20px",
+    background: "#28a745",
+    color: "white",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+    width: "100%",
+  },
+  summaryBox: {
+    marginTop: "20px",
+    padding: "15px",
+    background: "#fefefe",
+    border: "1px solid #ddd",
+    borderRadius: "8px",
+  },
+};

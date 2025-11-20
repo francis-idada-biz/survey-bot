@@ -36,3 +36,34 @@
     transform: rotate(360deg);
   }
 }
+
+.start-eval-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.student-select-section {
+  margin: 20px 0;
+}
+
+.error-banner {
+  background: #ffefef;
+  padding: 12px;
+  border-left: 4px solid #b40000;
+  margin-bottom: 12px;
+}
+
+.start-btn {
+  padding: 10px 20px;
+  background: #2b6efc;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.start-btn:disabled {
+  background: #8ab1ff;
+}
+

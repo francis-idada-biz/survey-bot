@@ -1,33 +1,44 @@
-// middleware/auth.js
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev_only_change_me';
+// Authentication middleware
+exports.requireAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
 
-// Attach req.user if valid, else 401
-function requireAuth(req, res, next) {
-  try {
-    const auth = req.headers.authorization || '';
-    const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
-    if (!token) return res.status(401).json({ error: 'Missing Authorization header' });
-
-    const payload = jwt.verify(token, JWT_SECRET);
-    // payload should contain { user_id, role, ... }
-    req.user = payload;
-    next();
-  } catch (err) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "No token provided" });
   }
-}
 
-// Gate by role(s)
-function requireRole(...roles) {
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    req.user = {
+      id: decoded.user_id,       // normalize so backend uses req.user.id
+      user_id: decoded.user_id,  // keep original field too
+      role: decoded.role,
+      email: decoded.email,
+      name: decoded.name
+    };
+
+    next();
+
+  } catch (err) {
+    return res.status(401).json({ error: "Invalid token" });
+  }
+};
+
+// Authorization middleware
+exports.requireRole = (requiredRole) => {
   return (req, res, next) => {
-    if (!req.user) return res.status(401).json({ error: 'Not authenticated' });
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Insufficient permissions' });
+    if (!req.user) {
+      return res.status(401).json({ error: "Not authenticated" });
     }
+
+    if (req.user.role !== requiredRole) {
+      return res.status(403).json({ error: "Forbidden — insufficient role" });
+    }
+
     next();
   };
-}
-
-module.exports = { requireAuth, requireRole };
+};
