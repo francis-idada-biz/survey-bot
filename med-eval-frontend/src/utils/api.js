@@ -1,7 +1,7 @@
 import axios from "axios";
 
+// Remove baseURL so it uses the current origin (handled by Vite proxy)
 const api = axios.create({
-  baseURL: "http://localhost:4000",
   withCredentials: false,
 });
 

@@ -7,41 +7,51 @@ import Dashboard from "./components/Dashboard";
 import StartEvaluation from "./components/StartEvaluation";
 import EvaluationChat from "./components/EvaluationChat";
 import ProtectedRoute from "./router/ProtectedRoute";
-import { useAuth } from "./hooks/useAuth";
+import { AuthProvider, AuthContext } from "./context/AuthContext"; // Import the provider
+import { useContext } from "react";
 
 export default function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      {/* 1. Wrap the entire app in AuthProvider */}
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </BrowserRouter>
   );
 }
 
 function AppContent() {
-  const { user } = useAuth();
+  // 2. Now useAuth (via useContext) will work correctly
+  const { user } = useContext(AuthContext);
   const location = useLocation();
 
   // Hide nav ONLY on login page
   const hideNav = location.pathname === "/login";
 
   return (
-    <div className="min-h-screen bg-slate-100 flex justify-center">
+    <div className="min-h-screen bg-slate-100 flex justify-center font-sans">
       <div className="w-full max-w-4xl bg-white min-h-screen shadow-md border-x border-slate-300">
 
         {/* TOP NAV */}
         {!hideNav && (
-          <div className="w-full p-4 border-b bg-slate-50 border-slate-300 flex justify-between items-center">
+          <div className="w-full p-4 border-b bg-slate-50 border-slate-300 flex justify-between items-center sticky top-0 z-10">
             <h1 className="text-xl font-semibold text-slate-800">
               Medical Evaluation System
             </h1>
 
             {user ? (
-              <a
-                href="/logout"
-                className="text-blue-700 hover:underline font-medium"
-              >
-                Logout
-              </a>
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-slate-500">
+                  {user.email} ({user.role})
+                </span>
+                <a
+                  href="/logout"
+                  className="text-sm text-red-600 hover:underline font-medium"
+                >
+                  Logout
+                </a>
+              </div>
             ) : (
               <div />
             )}
