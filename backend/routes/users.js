@@ -1,4 +1,3 @@
-// routes/users.js
 const express = require('express');
 const pool = require('../db');
 const { requireAuth, requireRole } = require('../middleware/auth');
@@ -26,32 +25,37 @@ router.post('/invite', requireAuth, requireRole('admin'), async (req, res) => {
     if (!['evaluator', 'student', 'admin'].includes(role)) {
       return res.status(400).json({ error: 'Invalid role for invite' });
     }
-    // Use DB default UUID if you created it that way, or generate here:
     const ins = await pool.query(
       `INSERT INTO invitations (email, role, created_by) VALUES ($1,$2,$3)
        RETURNING invite_id, token, expires_at`,
       [email, role, req.user.user_id]
     );
-    res.json(ins.rows[0]); // contains token; send via email in production
+    res.json(ins.rows[0]);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// routes/users.js (add at bottom)
-router.get('/students', requireAuth, requireRole('evaluator','admin'), async (_req, res) => {
+// FIXED: Generic search route that handles /api/users?role=student
+router.get('/', requireAuth, requireRole('evaluator','admin'), async (req, res) => {
   try {
-    const q = await pool.query(
-      `SELECT user_id, name, email, year_in_med_school
-         FROM users
-        WHERE role = 'student'
-        ORDER BY name ASC`
-    );
-    res.json(q.rows);
+    const { role } = req.query;
+    let text = `SELECT user_id, name, email, year_in_med_school FROM users`;
+    const params = [];
+
+    if (role) {
+      text += ` WHERE role = $1`;
+      params.push(role);
+    }
+    text += ` ORDER BY name ASC`;
+
+    const q = await pool.query(text, params);
+    
+    // Return object format expected by frontend
+    res.json({ students: q.rows, users: q.rows });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
-
 
 module.exports = router;

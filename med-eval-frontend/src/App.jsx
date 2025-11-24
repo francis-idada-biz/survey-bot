@@ -26,42 +26,46 @@ function AppContent() {
   const { user } = useContext(AuthContext);
   const location = useLocation();
 
-  // Hide nav ONLY on login page
-  const hideNav = location.pathname === "/login";
+  // Render ONLY the login page if we're on that route
+  if (location.pathname === "/login") {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+      </Routes>
+    );
+  }
 
+  // Otherwise, render the main app layout
   return (
     <div className="min-h-screen bg-slate-100 flex justify-center font-sans">
       <div className="w-full max-w-4xl bg-white min-h-screen shadow-md border-x border-slate-300">
 
         {/* TOP NAV */}
-        {!hideNav && (
-          <div className="w-full p-4 border-b bg-slate-50 border-slate-300 flex justify-between items-center sticky top-0 z-10">
-            <h1 className="text-xl font-semibold text-slate-800">
-              Medical Evaluation System
-            </h1>
+        <div className="w-full p-4 border-b bg-slate-50 border-slate-300 flex justify-between items-center sticky top-0 z-10">
+          <h1 className="text-xl font-semibold text-slate-800">
+            Medical Evaluation System
+          </h1>
 
-            {user ? (
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-slate-500">
-                  {user.email} ({user.role})
-                </span>
-                <a
-                  href="/logout"
-                  className="text-sm text-red-600 hover:underline font-medium"
-                >
-                  Logout
-                </a>
-              </div>
-            ) : (
-              <div />
-            )}
-          </div>
-        )}
+          {user ? (
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-slate-500">
+                {user.email} ({user.role})
+              </span>
+              <a
+                href="/logout"
+                className="text-sm text-red-600 hover:underline font-medium"
+              >
+                Logout
+              </a>
+            </div>
+          ) : (
+            <div />
+          )}
+        </div>
 
         {/* MAIN CONTENT */}
         <div className="p-6">
           <Routes>
-            <Route path="/login" element={<Login />} />
             <Route path="/logout" element={<Logout />} />
 
             <Route

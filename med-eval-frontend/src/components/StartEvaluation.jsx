@@ -6,6 +6,8 @@ export default function StartEvaluation() {
   const [students, setStudents] = useState([]);
   const [selected, setSelected] = useState("");
   const [loading, setLoading] = useState(true);
+  const [starting, setStarting] = useState(false);
+  const [inProgressId, setInProgressId] = useState(null);
   const nav = useNavigate();
 
   useEffect(() => {
@@ -17,20 +19,44 @@ export default function StartEvaluation() {
     load();
   }, []);
 
+  useEffect(() => {
+    if (selected) {
+      setInProgressId(null);
+      setStarting(true);
+      api.get(`/api/evaluations/inprogress/${selected}`).then((res) => {
+        if (res.data.evaluation_id) {
+          setInProgressId(res.data.evaluation_id);
+        }
+        setStarting(false);
+      });
+    }
+  }, [selected]);
+
   const start = async () => {
-    const res = await api.post("/api/evaluations/start", {
-      student_id: selected,
-    });
+    if (inProgressId) {
+      nav(`/evaluation/${inProgressId}`);
+      return;
+    }
 
-    const evaluation_id = res.data.evaluation_id;
+    setStarting(true);
+    try {
+      const res = await api.post("/api/evaluations/start", {
+        student_id: selected,
+      });
 
-    await api.post("/api/evaluations/chat", {
-      evaluation_id,
-      message: "__system_init",
-      history: [],
-    });
+      const evaluation_id = res.data.evaluation_id;
 
-    nav(`/evaluation/${evaluation_id}`);
+      await api.post("/api/evaluations/chat", {
+        evaluation_id,
+        message: "__system_init",
+        history: [],
+      });
+
+      nav(`/evaluation/${evaluation_id}`);
+    } catch (error) {
+      console.error("Failed to start evaluation", error);
+      setStarting(false);
+    }
   };
 
   if (loading) return <div className="p-6 text-slate-600">Loading…</div>;
@@ -57,11 +83,15 @@ export default function StartEvaluation() {
         </div>
 
         <button
-          disabled={!selected}
+          disabled={!selected || starting}
           onClick={start}
           className="w-full bg-blue-700 disabled:bg-slate-400 text-white py-3 rounded-md hover:bg-blue-800"
         >
-          Begin Evaluation
+          {starting
+            ? "Checking..."
+            : inProgressId
+            ? "Continue Evaluation"
+            : "Begin Evaluation"}
         </button>
       </div>
     </div>

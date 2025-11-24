@@ -1,4 +1,3 @@
-// routes/auth.js
 const express = require('express');
 const pool = require('../db');
 const jwt = require('jsonwebtoken');
@@ -6,6 +5,13 @@ const bcrypt = require('bcrypt');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
+
+// Ensure JWT_SECRET is set in production
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+  console.error("FATAL: JWT_SECRET is not defined.");
+  process.exit(1);
+}
+
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_only_change_me';
 
 router.post('/login', async (req, res) => {
@@ -29,7 +35,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// invited self-registration (public, uses invite token you created earlier)
 router.post('/register', async (req, res) => {
   const { token, name, dob, year_in_med_school, department, password } = req.body;
   try {
@@ -55,34 +60,18 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// verify current session/token
 router.get("/me", requireAuth, async (req, res) => {
   try {
-    const userId = req.user.id; // this is fine, token carries "id"
-    
+    const userId = req.user.id;
     const result = await pool.query(
-      `SELECT 
-        user_id AS id,
-        name,
-        email,
-        role,
-        department,
-        dob,
-        year_in_med_school,
-        picture_url,
-        created_at,
-        updated_at
-       FROM users
-       WHERE user_id = $1`,
+      `SELECT user_id AS id, name, email, role, department, dob, year_in_med_school, picture_url, created_at, updated_at
+       FROM users WHERE user_id = $1`,
       [userId]
     );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    if (result.rows.length === 0) return res.status(404).json({ error: "User not found" });
 
     return res.json({ user: result.rows[0] });
-
   } catch (err) {
     console.error("Auth me error:", err);
     res.status(500).json({ error: "Server error" });

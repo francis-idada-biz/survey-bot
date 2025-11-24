@@ -1,7 +1,11 @@
 import axios from "axios";
 
-// Remove baseURL so it uses the current origin (handled by Vite proxy)
+// In production, VITE_API_URL will be your Railway URL.
+// In dev, it is undefined, so axios falls back to relative paths (handled by Vite proxy)
+const baseURL = import.meta.env.VITE_API_URL || "";
+
 const api = axios.create({
+  baseURL: baseURL,
   withCredentials: false,
 });
 

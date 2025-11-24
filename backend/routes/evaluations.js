@@ -93,8 +93,10 @@ Your output should consist ONLY of your visible message to the teacher; do not i
 
 
 // ------------------------------------------------------------
-// START EVALUATION
+// ROUTES
 // ------------------------------------------------------------
+
+// 1. START EVALUATION
 router.post(
   "/start",
   requireAuth,
@@ -125,17 +127,71 @@ router.post(
 
       res.json(ins.rows[0]);
     } catch (e) {
+      console.error(e);
       res.status(500).json({ error: e.message });
     }
   }
 );
 
+// 2. GET CHAT HISTORY (This was missing!)
+router.get("/chat/:evaluation_id", requireAuth, requireRole("evaluator", "admin"), async (req, res) => {
+  try {
+    const { evaluation_id } = req.params;
 
-// ------------------------------------------------------------
-// CHAT WITH CLAUDE
-// ------------------------------------------------------------
+    // Verify evaluation exists
+    const check = await pool.query(
+      "SELECT * FROM evaluations WHERE evaluation_id = $1",
+      [evaluation_id]
+    );
+    if (check.rowCount === 0) {
+      return res.status(404).json({ error: "Evaluation not found" });
+    }
+
+    // Fetch messages
+    const msgs = await pool.query(
+      `SELECT sender, content, created_at 
+       FROM chat_messages 
+       WHERE evaluation_id = $1 
+       ORDER BY created_at ASC`,
+      [evaluation_id]
+    );
+
+    res.json({ messages: msgs.rows });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// NEW ROUTE: CHECK FOR IN-PROGRESS EVALUATION
+router.get("/inprogress/:student_id", requireAuth, requireRole("evaluator", "admin"), async (req, res) => {
+    try {
+        const { student_id } = req.params;
+        const evaluator_id = req.user.user_id;
+
+        const q = await pool.query(
+            `SELECT evaluation_id FROM evaluations
+             WHERE student_id = $1 AND evaluator_id = $2 AND completed_at IS NULL
+             ORDER BY started_at DESC
+             LIMIT 1`,
+            [student_id, evaluator_id]
+        );
+
+        if (q.rowCount > 0) {
+            res.json({ evaluation_id: q.rows[0].evaluation_id });
+        } else {
+            res.json({ evaluation_id: null });
+        }
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+
+// 3. SEND MESSAGE (CHAT WITH CLAUDE)
 router.post("/chat", requireAuth, requireRole("evaluator", "admin"), async (req, res) => {
-  const { evaluation_id, message, history } = req.body;
+  const { evaluation_id, message, history = [] } = req.body;
 
   try {
     // fetch evaluation + student + evaluator dept
@@ -149,7 +205,7 @@ router.post("/chat", requireAuth, requireRole("evaluator", "admin"), async (req,
     if (ev.rowCount === 0) return res.status(400).json({ error: "Eval not found" });
 
     const student_info = `Name: ${ev.rows[0].student_name}\nDepartment: ${ev.rows[0].student_dept}`;
-    const evaluation_criteria = `A. H&P\nB. Differential\nC. Plan\nD. Follow-up\nE. Emergency\nF. Communication`;
+    const evaluation_criteria = `**A. H&P**\n**B. Differential**\n**C. Plan**\n**D. Follow-up**\n**E. Emergency**\n**F. Communication**`;
 
     const previous_eval = await getPreviousEvalSummary(
       ev.rows[0].student_id,
@@ -165,10 +221,10 @@ router.post("/chat", requireAuth, requireRole("evaluator", "admin"), async (req,
     // special case: __system_init
     if (message === "__system_init") {
       const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-5-20250929",
         system: SYSTEM_PROMPT,
         max_tokens: 600,
-        messages: [],
+        messages: [{ role: "user", content: "Start the survey" }], 
       });
 
       const text = response?.content?.[0]?.text ?? "";
@@ -190,11 +246,13 @@ router.post("/chat", requireAuth, requireRole("evaluator", "admin"), async (req,
     );
 
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-5-20250929",
       system: SYSTEM_PROMPT,
       max_tokens: 600,
       temperature: 0.3,
-      messages: history.concat({ role: "user", content: message }),
+      messages: history
+        .map((m) => ({ role: m.role, content: m.message }))
+        .concat({ role: "user", content: message }),
     });
 
     const text = response?.content?.[0]?.text ?? "";
@@ -208,14 +266,13 @@ router.post("/chat", requireAuth, requireRole("evaluator", "admin"), async (req,
     res.json({ response: text });
 
   } catch (e) {
+    console.error(e);
     res.status(500).json({ error: e.message });
   }
 });
 
 
-// ------------------------------------------------------------
-// GENERATE SUMMARY
-// ------------------------------------------------------------
+// 4. GENERATE SUMMARY
 router.post("/summary", requireAuth, requireRole("evaluator", "admin"), async (req, res) => {
   const { evaluation_id } = req.body;
 
@@ -231,7 +288,7 @@ router.post("/summary", requireAuth, requireRole("evaluator", "admin"), async (r
     ).join("\n");
 
     const claude = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-5-20250929",
       max_tokens: 800,
       temperature: 0.2,
       system: "You are a medical education assistant.",
@@ -239,7 +296,7 @@ router.post("/summary", requireAuth, requireRole("evaluator", "admin"), async (r
         {
           role: "user",
           content:
-            `Conversation:\n${convo}\n\nSummarize with ratings A–F, strengths, concerns, suggestions, overall rating (1–4).`
+            `Conversation:\n${convo}\n\nSummarize with ratings A–F, strengths, concerns, suggestions, and overall rating (1–4). Then, provide a recommendation for the student.`
         }
       ]
     });
@@ -261,6 +318,7 @@ router.post("/summary", requireAuth, requireRole("evaluator", "admin"), async (r
     res.json(ins.rows[0]);
 
   } catch (e) {
+    console.error(e);
     res.status(500).json({ error: e.message });
   }
 });

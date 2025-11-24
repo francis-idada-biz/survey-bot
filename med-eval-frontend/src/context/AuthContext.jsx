@@ -7,9 +7,10 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Function to check if the user is logged in (calls backend)
   const checkUser = async () => {
     const token = localStorage.getItem("token");
+
+    // 1. If no token exists, stop immediately. Don't call the API.
     if (!token) {
       setUser(null);
       setLoading(false);
@@ -17,19 +18,19 @@ export function AuthProvider({ children }) {
     }
 
     try {
+      // 2. Token exists, let's verify it
       const res = await api.get("/api/auth/me");
       setUser(res.data.user);
     } catch (err) {
-      console.error("Auth check failed", err);
+      // 3. If the token is invalid (401), clear it automatically
+      console.log("Session expired or invalid, clearing token.");
+      localStorage.removeItem("token");
       setUser(null);
-      // Optional: Clear invalid token
-      // localStorage.removeItem("token"); 
     } finally {
       setLoading(false);
     }
   };
 
-  // Check user on app load
   useEffect(() => {
     checkUser();
   }, []);

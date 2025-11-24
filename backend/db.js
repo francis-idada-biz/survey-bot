@@ -1,3 +1,5 @@
+const { Pool } = require('pg');
+
 // In production (Railway/Heroku), DATABASE_URL is provided automatically.
 // We also need to enable SSL for most cloud databases.
 const isProduction = process.env.NODE_ENV === 'production';
