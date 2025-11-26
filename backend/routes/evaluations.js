@@ -323,4 +323,29 @@ router.post("/summary", requireAuth, requireRole("evaluator", "admin"), async (r
   }
 });
 
+// Student gets their evaluations
+router.get('/student', requireAuth, requireRole('student'), async (req, res) => {
+    try {
+        const student_id = req.user.user_id;
+        const q = await pool.query(
+            `SELECT 
+                e.evaluation_id, 
+                e.started_at, 
+                e.completed_at, 
+                u.name as evaluator_name,
+                es.summary
+             FROM evaluations e
+             JOIN users u ON e.evaluator_id = u.user_id
+             LEFT JOIN evaluation_summaries es ON e.evaluation_id = es.evaluation_id
+             WHERE e.student_id = $1
+             ORDER BY e.started_at DESC`,
+            [student_id]
+        );
+        res.json(q.rows);
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
 module.exports = router;

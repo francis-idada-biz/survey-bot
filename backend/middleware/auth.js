@@ -29,13 +29,13 @@ exports.requireAuth = (req, res, next) => {
 };
 
 // Authorization middleware
-exports.requireRole = (requiredRole) => {
+exports.requireRole = (...requiredRoles) => {
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    if (req.user.role !== requiredRole) {
+    if (!requiredRoles.includes(req.user.role)) {
       return res.status(403).json({ error: "Forbidden — insufficient role" });
     }
 
