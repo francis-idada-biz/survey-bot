@@ -35,7 +35,9 @@ app.use('/api/evaluations', require('./routes/evaluations'));
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
 // Start server
-const PORT = process.env.PORT || 4000;
+const PORT = parseInt(process.env.PORT, 10) || 4000;
+
+console.log("DEBUG → process.env.PORT:", process.env.PORT);
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Backend running on port ${PORT}`);
+  console.log(`🚀 Server started successfully on port ${PORT}`);
 });
