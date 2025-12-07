@@ -19,7 +19,7 @@ ENV NODE_ENV=production
 RUN ls -R /app   # TEMPORARY DEBUG
 
 # Expose the runtime port (Railway maps EXPOSE to process.env.PORT)
-EXPOSE 8080
+EXPOSE 80
 
 # Start the server
 CMD ["node", "server.js"]
