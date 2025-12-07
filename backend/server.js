@@ -36,9 +36,9 @@ app.use(rateLimit({
 }));
 
 // Routes
-//app.use('/api/auth', require('./routes/auth'));
-//app.use('/api/users', require('./routes/users'));
-//app.use('/api/evaluations', require('./routes/evaluations'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/users', require('./routes/users'));
+app.use('/api/evaluations', require('./routes/evaluations'));
 
 // Health check
 app.get('/health', (_req, res) => res.json({ ok: true }));
@@ -47,6 +47,10 @@ app.get('/health', (_req, res) => res.json({ ok: true }));
 const PORT = parseInt(process.env.PORT, 10) || 4000;
 
 console.log("DEBUG → process.env.PORT:", process.env.PORT);
-app.listen(PORT, '0.0.0.0', () => {
+
+const http = require("http");
+const server = http.createServer(app);
+
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server started successfully on port ${PORT}`);
 });
