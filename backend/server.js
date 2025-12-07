@@ -36,9 +36,9 @@ app.use(rateLimit({
 }));
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/users', require('./routes/users'));
-app.use('/api/evaluations', require('./routes/evaluations'));
+//app.use('/api/auth', require('./routes/auth'));
+//app.use('/api/users', require('./routes/users'));
+//app.use('/api/evaluations', require('./routes/evaluations'));
 
 // Health check
 app.get('/health', (_req, res) => res.json({ ok: true }));
