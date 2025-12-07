@@ -4,6 +4,15 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
+process.on('uncaughtException', err => {
+  console.error("UNCAUGHT EXCEPTION:", err);
+});
+
+process.on('unhandledRejection', err => {
+  console.error("UNHANDLED PROMISE REJECTION:", err);
+});
+
+
 const app = express();
 
 // 1. Trust Proxy: Required for rate limiting to work behind Railway/Vercel load balancers
