@@ -22,8 +22,32 @@ app.set('trust proxy', 1);
 app.use(helmet());
 
 // 2. CORS: specific origin in production, wildcard in dev
-const clientOrigin = process.env.CLIENT_URL || '*';
-app.use(cors({ origin: clientOrigin }));
+const allowedOrigins = [
+  'https://survey-bot-flame.vercel.app',
+  /https:\/\/.*\.vercel\.app$/  // Allow all Vercel preview deployments
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin matches allowed origins or pattern
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (typeof allowed === 'string') {
+        return origin === allowed;
+      }
+      return allowed.test(origin);
+    });
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 
 app.use(express.json({ limit: '1mb' }));
 
