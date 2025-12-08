@@ -2,6 +2,7 @@ const express = require('express');
 const pool = require('../db');
 const nodemailer = require('nodemailer'); // Import nodemailer
 const { requireAuth, requireRole } = require('../middleware/auth');
+const emailService = require('../utils/emailService');
 
 const router = express.Router();
 
@@ -56,7 +57,6 @@ router.post('/invite', requireAuth, requireRole('admin'), async (req, res) => {
       return res.status(400).json({ error: 'Invalid role for invite' });
     }
 
-    // 1. Create Invite Record in DB
     const ins = await pool.query(
       `INSERT INTO invitations (email, role, created_by) VALUES ($1,$2,$3)
        RETURNING invite_id, token, expires_at`,
@@ -64,18 +64,13 @@ router.post('/invite', requireAuth, requireRole('admin'), async (req, res) => {
     );
     
     const { token } = ins.rows[0];
-
-    // 2. Construct the Frontend Registration Link
-    // Ensure CLIENT_URL is set in Railway variables (e.g. https://survey-bot.vercel.app)
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
     const inviteLink = `${clientUrl}/register?token=${token}`;
 
-    // 3. Send Email via Nodemailer
-    const transporter = await getTransporter();
-    const info = await transporter.sendMail({
-      from: '"Medical Eval Bot" <no-reply@hospital.org>',
+    // Use the unified email service
+    await emailService.sendEmail({
       to: email,
-      subject: "You have been invited to the Evaluation System",
+      subject: 'You have been invited to the Evaluation System',
       html: `
         <h3>Welcome!</h3>
         <p>You have been invited to join as a <b>${role}</b>.</p>
@@ -86,20 +81,13 @@ router.post('/invite', requireAuth, requireRole('admin'), async (req, res) => {
       `,
     });
 
-    console.log("Message sent: %s", info.messageId);
-
-    // If using Ethereal (Dev mode), log the preview URL so you can click it manually
-    if (process.env.NODE_ENV !== 'production') {
-      console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
-    }
-
     res.json({ message: "Invitation sent successfully", invite_id: ins.rows[0].invite_id });
-
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: e.message });
   }
 });
+
 
 // Generic search route
 router.get('/', requireAuth, requireRole('evaluator','admin'), async (req, res) => {

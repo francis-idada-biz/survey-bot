@@ -3,6 +3,7 @@ const pool = require('../db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { requireAuth } = require('../middleware/auth');
+const emailService = require('../utils/emailService');
 
 const router = express.Router();
 
@@ -94,37 +95,32 @@ router.post('/request-password-reset', async (req, res) => {
   const { email } = req.body;
   try {
     const q = await pool.query('SELECT * FROM users WHERE email=$1', [email]);
+    
     if (q.rowCount > 0) {
       const user = q.rows[0];
-      const resetToken = jwt.sign({ user_id: user.user_id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
-      const resetLink = `http://localhost:5173/reset-password?token=${resetToken}`;
+      const resetToken = jwt.sign(
+        { user_id: user.user_id, email: user.email }, 
+        JWT_SECRET, 
+        { expiresIn: '1h' }
+      );
+      
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+      const resetLink = `${clientUrl}/reset-password?token=${resetToken}`;
 
-      const testAccount = await nodemailer.createTestAccount();
-      const transporter = nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        secure: false,
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass,
-        },
-      });
-
-      const info = await transporter.sendMail({
-        from: '"Survey Bot" <no-reply@surveybot.com>',
+      // Use the unified email service
+      await emailService.sendEmail({
         to: email,
         subject: 'Password Reset Request',
         html: `
+          <h3>Password Reset Request</h3>
           <p>You requested a password reset.</p>
           <p>Click <a href="${resetLink}">here</a> to reset your password.</p>
           <p>This link will expire in 1 hour.</p>
+          <p>If you didn't request this, please ignore this email.</p>
         `,
       });
-      
-      console.log("Password reset email sent: %s", info.messageId);
-      console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
     }
-    // Always send a success response
+    
     res.json({ message: "If an account with this email exists, a password reset link has been sent." });
   } catch (e) {
     console.error(e);
