@@ -67,6 +67,22 @@ app.use('/api/evaluations', require('./routes/evaluations'));
 // Health check
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
+app.get('/test-db', async (_req, res) => {
+  try {
+    const result = await require('./db').query('SELECT NOW(), COUNT(*) as user_count FROM users');
+    res.json({ 
+      success: true, 
+      timestamp: result.rows[0].now,
+      userCount: result.rows[0].user_count 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 // Start server
 const PORT = parseInt(process.env.PORT, 10) || 4000;
 
