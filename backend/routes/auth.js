@@ -17,32 +17,13 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev_only_change_me';
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
-  console.log('🔍 LOGIN ATTEMPT:', { email, password });
-  
   try {
     const q = await pool.query('SELECT * FROM users WHERE email=$1', [email]);
-    console.log('📊 QUERY RESULT:', { rowCount: q.rowCount });
-    
-    if (q.rowCount === 0) {
-      console.log('❌ USER NOT FOUND');
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
+    if (q.rowCount === 0) return res.status(401).json({ error: 'Invalid credentials' });
 
     const user = q.rows[0];
-    console.log('👤 USER DATA:', { 
-      email: user.email, 
-      role: user.role,
-      hasHash: !!user.password_hash,
-      hashStart: user.password_hash?.substring(0, 20)
-    });
-    
     const ok = await bcrypt.compare(password, user.password_hash || '');
-    console.log('🔐 BCRYPT RESULT:', ok);
-    
-    if (!ok) {
-      console.log('❌ PASSWORD MISMATCH');
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
+    if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
 
     await pool.query('UPDATE users SET last_accessed_at = now() WHERE user_id = $1', [user.user_id]);
 
@@ -51,11 +32,8 @@ router.post('/login', async (req, res) => {
       JWT_SECRET,
       { expiresIn: '1d' }
     );
-    
-    console.log('✅ LOGIN SUCCESS');
     res.json({ token, role: user.role, name: user.name });
   } catch (e) {
-    console.error('💥 LOGIN ERROR:', e);
     res.status(500).json({ error: e.message });
   }
 });
@@ -129,7 +107,6 @@ router.post('/request-password-reset', async (req, res) => {
       const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
       const resetLink = `${clientUrl}/reset-password?token=${resetToken}`;
 
-      // Use the unified email service
       await emailService.sendEmail({
         to: email,
         subject: 'Password Reset Request',
@@ -194,37 +171,6 @@ router.get("/me", requireAuth, async (req, res) => {
     console.error("Auth me error:", err);
     res.status(500).json({ error: "Server error" });
   }
-});
-
-// TEMPORARY - for creating first admin user
-router.post('/create-first-admin', async (req, res) => {
-  try {
-    const { email, password, name } = req.body;
-    
-    // Check if any users exist
-    const check = await pool.query('SELECT COUNT(*) FROM users');
-    if (parseInt(check.rows[0].count) > 0) {
-      return res.status(400).json({ error: 'Users already exist. Delete this route!' });
-    }
-
-    const hash = await bcrypt.hash(password, 10);
-    
-    const result = await pool.query(
-      'INSERT INTO users (name, email, role, password_hash) VALUES ($1, $2, $3, $4) RETURNING user_id, email, name',
-      [name, email, 'admin', hash]
-    );
-
-    res.json({ success: true, user: result.rows[0] });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-// TEMPORARY DEBUG ROUTE - Delete after use
-router.get('/generate-hash/:password', async (req, res) => {
-  const { password } = req.params;
-  const hash = await bcrypt.hash(password, 10);
-  res.json({ password, hash });
 });
 
 module.exports = router;
