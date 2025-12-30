@@ -17,13 +17,32 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev_only_change_me';
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
+  console.log('🔍 LOGIN ATTEMPT:', { email, password });
+  
   try {
     const q = await pool.query('SELECT * FROM users WHERE email=$1', [email]);
-    if (q.rowCount === 0) return res.status(401).json({ error: 'Invalid credentials' });
+    console.log('📊 QUERY RESULT:', { rowCount: q.rowCount });
+    
+    if (q.rowCount === 0) {
+      console.log('❌ USER NOT FOUND');
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
     const user = q.rows[0];
+    console.log('👤 USER DATA:', { 
+      email: user.email, 
+      role: user.role,
+      hasHash: !!user.password_hash,
+      hashStart: user.password_hash?.substring(0, 20)
+    });
+    
     const ok = await bcrypt.compare(password, user.password_hash || '');
-    if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+    console.log('🔐 BCRYPT RESULT:', ok);
+    
+    if (!ok) {
+      console.log('❌ PASSWORD MISMATCH');
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
     await pool.query('UPDATE users SET last_accessed_at = now() WHERE user_id = $1', [user.user_id]);
 
@@ -32,8 +51,11 @@ router.post('/login', async (req, res) => {
       JWT_SECRET,
       { expiresIn: '1d' }
     );
+    
+    console.log('✅ LOGIN SUCCESS');
     res.json({ token, role: user.role, name: user.name });
   } catch (e) {
+    console.error('💥 LOGIN ERROR:', e);
     res.status(500).json({ error: e.message });
   }
 });
