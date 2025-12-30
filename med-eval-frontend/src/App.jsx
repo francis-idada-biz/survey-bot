@@ -72,12 +72,12 @@ function AppContent() {
               <span className="text-sm text-slate-500">
                 {user.email} ({user.role})
               </span>
-              <a
-                href="/logout"
+              <Link
+                to="/logout"
                 className="text-sm text-red-600 hover:underline font-medium"
               >
                 Logout
-              </a>
+              </Link>
             </div>
           ) : (
             <div />
