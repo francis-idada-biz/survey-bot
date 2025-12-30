@@ -174,4 +174,28 @@ router.get("/me", requireAuth, async (req, res) => {
   }
 });
 
+// TEMPORARY - for creating first admin user
+router.post('/create-first-admin', async (req, res) => {
+  try {
+    const { email, password, name } = req.body;
+    
+    // Check if any users exist
+    const check = await pool.query('SELECT COUNT(*) FROM users');
+    if (parseInt(check.rows[0].count) > 0) {
+      return res.status(400).json({ error: 'Users already exist. Delete this route!' });
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+    
+    const result = await pool.query(
+      'INSERT INTO users (name, email, role, password_hash) VALUES ($1, $2, $3, $4) RETURNING user_id, email, name',
+      [name, email, 'admin', hash]
+    );
+
+    res.json({ success: true, user: result.rows[0] });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
