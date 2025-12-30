@@ -220,4 +220,11 @@ router.post('/create-first-admin', async (req, res) => {
   }
 });
 
+// TEMPORARY DEBUG ROUTE - Delete after use
+router.get('/generate-hash/:password', async (req, res) => {
+  const { password } = req.params;
+  const hash = await bcrypt.hash(password, 10);
+  res.json({ password, hash });
+});
+
 module.exports = router;
