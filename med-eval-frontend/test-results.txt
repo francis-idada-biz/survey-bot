@@ -1,0 +1,372 @@
+
+Running 40 tests using 4 workers
+
+  ✓   3 [chromium] › tests/auth.spec.js:8:3 › Authentication Flow › should display login page (1.2s)
+  ✘   5 [chromium] › tests/auth.spec.js:99:3 › Authentication Flow › should redirect to login when accessing protected route while logged out (830ms)
+  ✓   1 [chromium] › tests/auth.spec.js:43:3 › Authentication Flow › should show error for invalid credentials (3.3s)
+  ✘   6 [chromium] › tests/auth.spec.js:120:3 › Authentication Flow › should navigate to forgot password page (1.1s)
+  -   7 [chromium] › tests/auth.spec.js:160:3 › Password Management › should show password reset form
+  -   8 [chromium] › tests/auth.spec.js:212:3 › Password Management › should be able to return to login from password reset page
+  ✓   9 [firefox] › tests/auth.spec.js:8:3 › Authentication Flow › should display login page (1.6s)
+  ✓  11 [firefox] › tests/auth.spec.js:43:3 › Authentication Flow › should show error for invalid credentials (3.0s)
+  ✘   4 [chromium] › tests/auth.spec.js:62:3 › Authentication Flow › should logout successfully (30.2s)
+  ✘   2 [chromium] › tests/auth.spec.js:17:3 › Authentication Flow › should login successfully with valid credentials (30.2s)
+  ✘  13 [firefox] › tests/auth.spec.js:99:3 › Authentication Flow › should redirect to login when accessing protected route while logged out (1.5s)
+  ✘  14 [firefox] › tests/auth.spec.js:120:3 › Authentication Flow › should navigate to forgot password page (2.1s)
+  ✓  10 [firefox] › tests/auth.spec.js:17:3 › Authentication Flow › should login successfully with valid credentials (28.7s)
+  ✓  12 [firefox] › tests/auth.spec.js:62:3 › Authentication Flow › should logout successfully (24.5s)
+  -  16 [firefox] › tests/auth.spec.js:212:3 › Password Management › should be able to return to login from password reset page
+  -  15 [firefox] › tests/auth.spec.js:160:3 › Password Management › should show password reset form
+  ✓  17 [webkit] › tests/auth.spec.js:8:3 › Authentication Flow › should display login page (1.2s)
+  ✘  20 [webkit] › tests/auth.spec.js:99:3 › Authentication Flow › should redirect to login when accessing protected route while logged out (904ms)
+  ✓  18 [webkit] › tests/auth.spec.js:17:3 › Authentication Flow › should login successfully with valid credentials (2.5s)
+  ✘  23 [webkit] › tests/auth.spec.js:120:3 › Authentication Flow › should navigate to forgot password page (1.2s)
+  ✓  21 [webkit] › tests/auth.spec.js:62:3 › Authentication Flow › should logout successfully (2.5s)
+  ✓  19 [webkit] › tests/auth.spec.js:43:3 › Authentication Flow › should show error for invalid credentials (3.0s)
+  -  22 [webkit] › tests/auth.spec.js:160:3 › Password Management › should show password reset form
+  ✓  25 [Mobile Chrome] › tests/auth.spec.js:8:3 › Authentication Flow › should display login page (1.1s)
+  -  24 [webkit] › tests/auth.spec.js:212:3 › Password Management › should be able to return to login from password reset page
+  ✓  26 [Mobile Chrome] › tests/auth.spec.js:17:3 › Authentication Flow › should login successfully with valid credentials (2.1s)
+  ✘  29 [Mobile Chrome] › tests/auth.spec.js:99:3 › Authentication Flow › should redirect to login when accessing protected route while logged out (948ms)
+  ✘  30 [Mobile Chrome] › tests/auth.spec.js:120:3 › Authentication Flow › should navigate to forgot password page (1.1s)
+  ✓  28 [Mobile Chrome] › tests/auth.spec.js:62:3 › Authentication Flow › should logout successfully (2.2s)
+  ✓  27 [Mobile Chrome] › tests/auth.spec.js:43:3 › Authentication Flow › should show error for invalid credentials (2.9s)
+  ✓  33 [Mobile Safari] › tests/auth.spec.js:8:3 › Authentication Flow › should display login page (940ms)
+  -  32 [Mobile Chrome] › tests/auth.spec.js:212:3 › Password Management › should be able to return to login from password reset page
+  ✓  34 [Mobile Safari] › tests/auth.spec.js:17:3 › Authentication Flow › should login successfully with valid credentials (3.0s)
+  -  31 [Mobile Chrome] › tests/auth.spec.js:160:3 › Password Management › should show password reset form
+  ✓  35 [Mobile Safari] › tests/auth.spec.js:43:3 › Authentication Flow › should show error for invalid credentials (3.2s)
+  ✘  36 [Mobile Safari] › tests/auth.spec.js:99:3 › Authentication Flow › should redirect to login when accessing protected route while logged out (1.3s)
+  ✘  39 [Mobile Safari] › tests/auth.spec.js:120:3 › Authentication Flow › should navigate to forgot password page (1.7s)
+  -  37 [Mobile Safari] › tests/auth.spec.js:160:3 › Password Management › should show password reset form
+  ✓  38 [Mobile Safari] › tests/auth.spec.js:62:3 › Authentication Flow › should logout successfully (2.6s)
+  -  40 [Mobile Safari] › tests/auth.spec.js:212:3 › Password Management › should be able to return to login from password reset page
+
+
+  1) [chromium] › tests/auth.spec.js:17:3 › Authentication Flow › should login successfully with valid credentials 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.waitForLoadState: Test timeout of 30000ms exceeded.
+
+      26 |     
+      27 |     // Wait for navigation (could be /, /profile, or /dashboard)
+    > 28 |     await page.waitForLoadState('networkidle');
+         |                ^
+      29 |     
+      30 |     // Should NOT still be on login page
+      31 |     await expect(page).not.toHaveURL(`${FRONTEND_URL}/login`);
+        at /Users/francisidada/survey-bot-2/med-eval-frontend/tests/auth.spec.js:28:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-74377-ully-with-valid-credentials-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-74377-ully-with-valid-credentials-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Authentication-Flow-s-74377-ully-with-valid-credentials-chromium/error-context.md
+
+  2) [chromium] › tests/auth.spec.js:62:3 › Authentication Flow › should logout successfully ───────
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.waitForLoadState: Test timeout of 30000ms exceeded.
+
+      68 |     
+      69 |     // Wait for dashboard to load
+    > 70 |     await page.waitForLoadState('networkidle');
+         |                ^
+      71 |     
+      72 |     // Try multiple possible logout selectors
+      73 |     const logoutSelectors = [
+        at /Users/francisidada/survey-bot-2/med-eval-frontend/tests/auth.spec.js:70:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-should-logout-successfully-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-should-logout-successfully-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Authentication-Flow-should-logout-successfully-chromium/error-context.md
+
+  3) [chromium] › tests/auth.spec.js:99:3 › Authentication Flow › should redirect to login when accessing protected route while logged out 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      115 |     
+      116 |     // Should show login form OR be on login page
+    > 117 |     expect(onLoginPage || (hasLoginForm && hasPasswordForm) || (hasWelcomeText && hasSignInButton)).toBe(true);
+          |                                                                                                     ^
+      118 |   });
+      119 |
+      120 |   test('should navigate to forgot password page', async ({ page }) => {
+        at /Users/francisidada/survey-bot-2/med-eval-frontend/tests/auth.spec.js:117:101
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-382bc-cted-route-while-logged-out-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-382bc-cted-route-while-logged-out-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Authentication-Flow-s-382bc-cted-route-while-logged-out-chromium/error-context.md
+
+  4) [chromium] › tests/auth.spec.js:120:3 › Authentication Flow › should navigate to forgot password page 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      153 |     const notOnMainLogin = !page.url().endsWith('/login') && !page.url().endsWith('/');
+      154 |     
+    > 155 |     expect(hasResetText || (hasEmailInput && notOnMainLogin)).toBe(true);
+          |                                                               ^
+      156 |   });
+      157 | });
+      158 |
+        at /Users/francisidada/survey-bot-2/med-eval-frontend/tests/auth.spec.js:155:63
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-81926-ate-to-forgot-password-page-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-81926-ate-to-forgot-password-page-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Authentication-Flow-s-81926-ate-to-forgot-password-page-chromium/error-context.md
+
+  5) [firefox] › tests/auth.spec.js:99:3 › Authentication Flow › should redirect to login when accessing protected route while logged out 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      115 |     
+      116 |     // Should show login form OR be on login page
+    > 117 |     expect(onLoginPage || (hasLoginForm && hasPasswordForm) || (hasWelcomeText && hasSignInButton)).toBe(true);
+          |                                                                                                     ^
+      118 |   });
+      119 |
+      120 |   test('should navigate to forgot password page', async ({ page }) => {
+        at /Users/francisidada/survey-bot-2/med-eval-frontend/tests/auth.spec.js:117:101
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-382bc-cted-route-while-logged-out-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-382bc-cted-route-while-logged-out-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Authentication-Flow-s-382bc-cted-route-while-logged-out-firefox/error-context.md
+
+  6) [firefox] › tests/auth.spec.js:120:3 › Authentication Flow › should navigate to forgot password page 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      153 |     const notOnMainLogin = !page.url().endsWith('/login') && !page.url().endsWith('/');
+      154 |     
+    > 155 |     expect(hasResetText || (hasEmailInput && notOnMainLogin)).toBe(true);
+          |                                                               ^
+      156 |   });
+      157 | });
+      158 |
+        at /Users/francisidada/survey-bot-2/med-eval-frontend/tests/auth.spec.js:155:63
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-81926-ate-to-forgot-password-page-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-81926-ate-to-forgot-password-page-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Authentication-Flow-s-81926-ate-to-forgot-password-page-firefox/error-context.md
+
+  7) [webkit] › tests/auth.spec.js:99:3 › Authentication Flow › should redirect to login when accessing protected route while logged out 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      115 |     
+      116 |     // Should show login form OR be on login page
+    > 117 |     expect(onLoginPage || (hasLoginForm && hasPasswordForm) || (hasWelcomeText && hasSignInButton)).toBe(true);
+          |                                                                                                     ^
+      118 |   });
+      119 |
+      120 |   test('should navigate to forgot password page', async ({ page }) => {
+        at /Users/francisidada/survey-bot-2/med-eval-frontend/tests/auth.spec.js:117:101
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-382bc-cted-route-while-logged-out-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-382bc-cted-route-while-logged-out-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Authentication-Flow-s-382bc-cted-route-while-logged-out-webkit/error-context.md
+
+  8) [webkit] › tests/auth.spec.js:120:3 › Authentication Flow › should navigate to forgot password page 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      153 |     const notOnMainLogin = !page.url().endsWith('/login') && !page.url().endsWith('/');
+      154 |     
+    > 155 |     expect(hasResetText || (hasEmailInput && notOnMainLogin)).toBe(true);
+          |                                                               ^
+      156 |   });
+      157 | });
+      158 |
+        at /Users/francisidada/survey-bot-2/med-eval-frontend/tests/auth.spec.js:155:63
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-81926-ate-to-forgot-password-page-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-81926-ate-to-forgot-password-page-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Authentication-Flow-s-81926-ate-to-forgot-password-page-webkit/error-context.md
+
+  9) [Mobile Chrome] › tests/auth.spec.js:99:3 › Authentication Flow › should redirect to login when accessing protected route while logged out 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      115 |     
+      116 |     // Should show login form OR be on login page
+    > 117 |     expect(onLoginPage || (hasLoginForm && hasPasswordForm) || (hasWelcomeText && hasSignInButton)).toBe(true);
+          |                                                                                                     ^
+      118 |   });
+      119 |
+      120 |   test('should navigate to forgot password page', async ({ page }) => {
+        at /Users/francisidada/survey-bot-2/med-eval-frontend/tests/auth.spec.js:117:101
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-382bc-cted-route-while-logged-out-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-382bc-cted-route-while-logged-out-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Authentication-Flow-s-382bc-cted-route-while-logged-out-Mobile-Chrome/error-context.md
+
+  10) [Mobile Chrome] › tests/auth.spec.js:120:3 › Authentication Flow › should navigate to forgot password page 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      153 |     const notOnMainLogin = !page.url().endsWith('/login') && !page.url().endsWith('/');
+      154 |     
+    > 155 |     expect(hasResetText || (hasEmailInput && notOnMainLogin)).toBe(true);
+          |                                                               ^
+      156 |   });
+      157 | });
+      158 |
+        at /Users/francisidada/survey-bot-2/med-eval-frontend/tests/auth.spec.js:155:63
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-81926-ate-to-forgot-password-page-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-81926-ate-to-forgot-password-page-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Authentication-Flow-s-81926-ate-to-forgot-password-page-Mobile-Chrome/error-context.md
+
+  11) [Mobile Safari] › tests/auth.spec.js:99:3 › Authentication Flow › should redirect to login when accessing protected route while logged out 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      115 |     
+      116 |     // Should show login form OR be on login page
+    > 117 |     expect(onLoginPage || (hasLoginForm && hasPasswordForm) || (hasWelcomeText && hasSignInButton)).toBe(true);
+          |                                                                                                     ^
+      118 |   });
+      119 |
+      120 |   test('should navigate to forgot password page', async ({ page }) => {
+        at /Users/francisidada/survey-bot-2/med-eval-frontend/tests/auth.spec.js:117:101
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-382bc-cted-route-while-logged-out-Mobile-Safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-382bc-cted-route-while-logged-out-Mobile-Safari/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Authentication-Flow-s-382bc-cted-route-while-logged-out-Mobile-Safari/error-context.md
+
+  12) [Mobile Safari] › tests/auth.spec.js:120:3 › Authentication Flow › should navigate to forgot password page 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      153 |     const notOnMainLogin = !page.url().endsWith('/login') && !page.url().endsWith('/');
+      154 |     
+    > 155 |     expect(hasResetText || (hasEmailInput && notOnMainLogin)).toBe(true);
+          |                                                               ^
+      156 |   });
+      157 | });
+      158 |
+        at /Users/francisidada/survey-bot-2/med-eval-frontend/tests/auth.spec.js:155:63
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-81926-ate-to-forgot-password-page-Mobile-Safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/auth-Authentication-Flow-s-81926-ate-to-forgot-password-page-Mobile-Safari/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Authentication-Flow-s-81926-ate-to-forgot-password-page-Mobile-Safari/error-context.md
+
+  12 failed
+    [chromium] › tests/auth.spec.js:17:3 › Authentication Flow › should login successfully with valid credentials 
+    [chromium] › tests/auth.spec.js:62:3 › Authentication Flow › should logout successfully ────────
+    [chromium] › tests/auth.spec.js:99:3 › Authentication Flow › should redirect to login when accessing protected route while logged out 
+    [chromium] › tests/auth.spec.js:120:3 › Authentication Flow › should navigate to forgot password page 
+    [firefox] › tests/auth.spec.js:99:3 › Authentication Flow › should redirect to login when accessing protected route while logged out 
+    [firefox] › tests/auth.spec.js:120:3 › Authentication Flow › should navigate to forgot password page 
+    [webkit] › tests/auth.spec.js:99:3 › Authentication Flow › should redirect to login when accessing protected route while logged out 
+    [webkit] › tests/auth.spec.js:120:3 › Authentication Flow › should navigate to forgot password page 
+    [Mobile Chrome] › tests/auth.spec.js:99:3 › Authentication Flow › should redirect to login when accessing protected route while logged out 
+    [Mobile Chrome] › tests/auth.spec.js:120:3 › Authentication Flow › should navigate to forgot password page 
+    [Mobile Safari] › tests/auth.spec.js:99:3 › Authentication Flow › should redirect to login when accessing protected route while logged out 
+    [Mobile Safari] › tests/auth.spec.js:120:3 › Authentication Flow › should navigate to forgot password page 
+  10 skipped
+  18 passed (53.5s)
+
+[36m  Serving HTML report at http://localhost:9323. Press Ctrl+C to quit.[39m

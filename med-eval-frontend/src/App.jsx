@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, useLocation, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Link, Navigate } from "react-router-dom";
 
 import Login from "./components/Login";
 import Logout from "./components/Logout";
@@ -14,13 +14,12 @@ import Profile from "./components/Profile";
 import RequestPasswordReset from "./components/RequestPasswordReset";
 import ResetPassword from "./components/ResetPassword";
 import ProtectedRoute from "./router/ProtectedRoute";
-import { AuthProvider, AuthContext } from "./context/AuthContext"; // Import the provider
+import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { useContext } from "react";
 
 export default function App() {
   return (
     <BrowserRouter>
-      {/* 1. Wrap the entire app in AuthProvider */}
       <AuthProvider>
         <AppContent />
       </AuthProvider>
@@ -29,13 +28,15 @@ export default function App() {
 }
 
 function AppContent() {
-  // 2. Now useAuth (via useContext) will work correctly
   const { user } = useContext(AuthContext);
   const location = useLocation();
 
-  // Render ONLY the public pages if we're on those routes
-  const publicPages = ["/login", "/register", "/request-password-reset", "/reset-password"];
-  if (publicPages.includes(location.pathname)) {
+  // Check if we're on a public page
+  const publicPaths = ["/login", "/register", "/request-password-reset", "/reset-password"];
+  const isPublicPath = publicPaths.some(path => location.pathname.startsWith(path));
+
+  // Render public pages with special layout
+  if (isPublicPath) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black flex justify-center items-center font-sans text-white">
         <div className="w-full max-w-md">
@@ -50,7 +51,7 @@ function AppContent() {
     );
   }
 
-  // Otherwise, render the main app layout
+  // Main app layout for protected routes
   return (
     <div className="min-h-screen bg-slate-100 flex justify-center font-sans">
       <div className="w-full max-w-4xl bg-white min-h-screen shadow-md border-x border-slate-300">
@@ -79,16 +80,16 @@ function AppContent() {
                 Logout
               </Link>
             </div>
-          ) : (
-            <div />
-          )}
+          ) : null}
         </div>
 
         {/* MAIN CONTENT */}
         <div className="p-6">
           <Routes>
+            {/* Public route for logout */}
             <Route path="/logout" element={<Logout />} />
 
+            {/* Protected routes */}
             <Route
               path="/"
               element={
@@ -160,6 +161,9 @@ function AppContent() {
                 </ProtectedRoute>
               }
             />
+
+            {/* Catch-all route - redirect to login if not authenticated, otherwise to dashboard */}
+            <Route path="*" element={user ? <Navigate to="/" replace /> : <Navigate to="/login" replace />} />
           </Routes>
         </div>
 
